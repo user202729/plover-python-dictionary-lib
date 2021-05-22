@@ -184,6 +184,9 @@ class NamedDictionary(Dictionary):
 
 
 class SingleDictionary(Dictionary):
+	"""
+	Represent a constant explicitly-specified dictionary.
+	"""
 	def __init__(self, stroke_type: type, data: Union[Iterable[InputStrokesType], Dict[InputStrokesType, Any]])->None:
 		super().__init__(stroke_type)
 		self.data: Dict[Strokes, Any]

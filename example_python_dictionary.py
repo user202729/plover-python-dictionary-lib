@@ -1,4 +1,6 @@
 #!/bin/python
+
+# ======== Imports.
 from plover.system import english_stenotype as e
 # Alternatively
 #    from plover import system as e
@@ -6,14 +8,17 @@ from plover.system import english_stenotype as e
 
 from plover_python_dictionary_lib import get_context_from_system
 
+# ======== Boilerplate to set up objects.
 context=get_context_from_system(e)
 s=context.SingleDictionary
 stroke=context.stroke
 translation=context.translation
 
+# ======== Define constants.
 leader_stroke="TP*EURPBG" # finger*
 leader_stroke_2="TP*EURPBGS" # fingers*
 
+# s(...): Creates a Dictionary object from a dict (or a list, for example, ["S"] is equivalent to {"S": "S"})
 left_hand=s({
 	'A':       'a',
 	'PW':      'b',
@@ -72,20 +77,23 @@ right_hand=s({
 	'-Z':      'z',
 	})
 
+# ======== Main definitions.
+
+# |: Compute the union of two dictionaries.
+# *: Compute the (Cartesian) product of two dictionaries. The 2 adjacent strokes are merged.
 one_stroke=left_hand | right_hand | left_hand*right_hand
 
+# /: Compute the (Cartesian) product of two dictionaries. The 2 adjacent strokes are not merged.
 dictionary = (
 		s({leader_stroke: "{#}", leader_stroke_2: "{#}"}) |
 		(stroke(leader_stroke) | stroke(leader_stroke_2)) / translation("{&") * one_stroke * translation("}") | 
 		stroke(leader_stroke_2) / translation("{&") * one_stroke / one_stroke * translation("}")
 		)
 
+# ======== More boilerplate (the lambda is required because plover-python-dictionary only accept objects with function type as the lookup function
 
 lookup=lambda strokes: dictionary.lookup_tuple(strokes)
 LONGEST_KEY=dictionary.longest_key
-
-
-
 
 
 # ======== demonstration part -- not necessary in a real Python dictionary
