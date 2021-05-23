@@ -3,6 +3,7 @@ import functools
 import sys
 import operator
 import itertools
+import inspect
 from types import SimpleNamespace
 from plover_stroke import BaseStroke
 
@@ -30,6 +31,9 @@ InputStrokesType=Union[InputStrokeType, Iterable[InputStrokeType], Iterable[str]
 
 Strokes=Tuple[BaseStroke, ...]
 
+def subsets(stroke_type: type, stroke: BaseStroke)->Iterable[BaseStroke]:
+	for keys in itertools.product([[], [key]] for key in stroke.keys()):
+		yield stroke_type(itertools.chain(keys))
 
 def outline_union(a: Strokes, b: Strokes)->Strokes:
 	return tuple(map(operator.or_, a, b))
@@ -104,11 +108,13 @@ class Dictionary:
 		"""
 		Map a function over the dictionary values.
 		"""
-		import inspect
 		argspec=inspect.getfullargspec(function)
 		assert not argspec.varargs
 
 		return MappedDictionary(self.stroke_type, self, function)
+
+	def filter(self, condition: Callable[[Strokes, Any], Any])->"Dictionary":
+		return FilteredDictionary(self.stroke_type, self, condition)
 
 	def named(self, name: str)->"NamedDictionary":
 		return NamedDictionary(self.stroke_type, self, name)
@@ -194,34 +200,57 @@ class NamedDictionary(RawMappedDictionary):
 		super().__init__(stroke_type, wrapped, self.name_result)
 
 	def name_result(self, _strokes: Strokes, result: Any)->CompoundResult:
-		assert not isinstance(result, CompoundResult)
+		assert not isinstance(result, CompoundResult), f"Cannot name already-named result -- old names: {list(result.data.keys())}, new name: {self.name}"
 		return CompoundResult({self.name: result})
+
+
+def apply_function(function: Callable, strokes: Strokes, result: Any)->Any:
+	"""
+	Apply a function on a resulting translation.
+
+	Possible function signatures:
+
+	f(result): Takes the raw result as input.
+		Only applicable if result is not a CompoundResult.
+		Does not support positional-only arguments.
+	f(result, strokes) / f(strokes, result): Takes the raw result and the strokes as input.
+		Only applicable if result is not a CompoundResult.
+		Does not support positional-only arguments.
+		The arguments must be named "result" and "strokes".
+	f(name1, name2, name3): Takes the groups with the provided names as input.
+		All available group names must be provided.
+	f(name1, name2, name3, strokes): Same as above, also take the strokes.
+	f(**kwargs): Same as above. kwargs["strokes"] will be available.
+	
+	"""
+	argspec=inspect.getfullargspec(function)
+	include_strokes=argspec.varkw is not None or "strokes" in argspec.args
+
+	assert result is not None
+	if isinstance(result, CompoundResult):
+		assert "strokes" not in result.data
+		if include_strokes:
+			return function(strokes=strokes, **result.data)
+		else:
+			return function(**result.data)
+
+	else:
+		if include_strokes:
+			return function(strokes=strokes, result=result)
+		else:
+			return function(result)
 
 
 class MappedDictionary(RawMappedDictionary):
 	def __init__(self, stroke_type: type, wrapped: Dictionary, function: Callable[..., Any])->None:
-		super().__init__(stroke_type, wrapped, self.apply_function)
+		super().__init__(stroke_type, wrapped, functools.partial(apply_function, function))
 		self.mapped_function=function
-
-	def apply_function(self, strokes: Strokes, result: Any)->Any:
-
-		#include_strokes=argspec.varkw is not None or "strokes" in argspec.args:
-		#include_strokes_rtfcre=argspec.varkw is not None or "strokes_rtfcre" in argspec.args:
-		#arguments={}
-		#if include_strokes: arguments["strokes"]=strokes
-		#if include_strokes_rtfcre: arguments["strokes_rtfcre"]=strokes_rtfcre
-
-		assert result is not None
-		if isinstance(result, CompoundResult):
-			return self.mapped_function(**result.data)
-		else:
-			return self.mapped_function(result)
 
 
 class FilteredDictionary(RawMappedDictionary):
 	def __init__(self, stroke_type: type, wrapped: Dictionary, condition: Callable[..., Any])->None:
 		super().__init__(stroke_type, wrapped,
-				lambda strokes, result: result if condition(result) else None
+				lambda strokes, result: result if apply_function(condition, strokes, result) else None
 				)
 
 
@@ -272,7 +301,7 @@ class ProductDictionary(Dictionary):
 		if merge:
 			x=a.outline_mask[-1]
 			y=b.outline_mask[0]
-			assert not (x&y)
+			assert not (x&y), f"Cannot merge -- overlapping mask: {x} & {y}"
 			self.outline_mask=a.outline_mask[:-1]+(x|y,)+b.outline_mask[1:]
 		else:
 			self.outline_mask=a.outline_mask+b.outline_mask
@@ -309,11 +338,15 @@ class ProductDictionary(Dictionary):
 			return strokes_a+strokes_b
 
 	def merge_value(self, value_a: Any, value_b: Any)->Union[str, CompoundResult]:
-		if isinstance(value_a, str) and isinstance(value_b, str):
-			return value_a+value_b
-		result=CompoundResult({})
-		if isinstance(value_a, CompoundResult): result.data.update(value_a.data)
-		if isinstance(value_b, CompoundResult): result.data.update(value_b.data)
+		if isinstance(value_a, CompoundResult) or isinstance(value_b, CompoundResult):
+			result=CompoundResult({})
+			if isinstance(value_a, CompoundResult): result.data.update(value_a.data)
+			if isinstance(value_b, CompoundResult): result.data.update(value_b.data)
+		else:
+			try:
+				return value_a+value_b
+			except TypeError:
+				raise TypeError(f"Unsupported result types -- Left result: {value_a!r}, right result: {value_b!r}")
 		return result
 
 	def items(self)->Iterable[Tuple[Strokes, Any]]:
@@ -322,8 +355,26 @@ class ProductDictionary(Dictionary):
 				yield self.merge_stroke(strokes_a, strokes_b), self.merge_value(value_a, value_b)
 
 
+class SubsetDictionary(Dictionary):
+	"""
+	A dictionary formed as all the subsets of a particular set of keys.
+	The corresponding value is a plover_stroke.BaseStroke object.
+	"""
+	def __init__(self, stroke_type: type, keys: InputStrokeType)->None:
+		super().__init__(stroke_type)
+		self.outline_mask=(to_stroke(stroke_type, keys),)
+		self.outline_length=1
+		self.longest_key=1
 
+	def items(self)->Iterable[Tuple[Strokes, Any]]:
+		assert self.outline_mask is not None
+		for stroke in subsets(self.stroke_type, self.outline_mask[0]):
+			yield stroke, stroke
 
+	def lookup(self, strokes: Strokes)->Any:
+		assert self.outline_mask is not None
+		if len(strokes)==1 and strokes[0] in self.outline_mask[0]:
+			return strokes[0]
 
 
 class AlternativeDictionary(Dictionary):
@@ -385,9 +436,19 @@ def translation(stroke_type: type, translation: str)->Dictionary:
 
 def get_context(stroke_type: type)->Context:
 	return Context(
-			SingleDictionary=functools.partial(SingleDictionary, stroke_type),
-			stroke=functools.partial(stroke, stroke_type),
-			translation=functools.partial(translation, stroke_type),
+			SingleDictionary  =functools.partial(SingleDictionary,  stroke_type),
+			s                 =functools.partial(SingleDictionary,  stroke_type),
+
+			stroke            =functools.partial(stroke,            stroke_type),
+
+			translation       =functools.partial(translation,       stroke_type),
+
+			filtered          =functools.partial(FilteredDictionary,stroke_type),
+			FilteredDictionary=functools.partial(FilteredDictionary,stroke_type),
+
+			subsets           =functools.partial(SubsetDictionary,  stroke_type),
+			subsetd           =functools.partial(SubsetDictionary,  stroke_type),
+			SubsetDictionary  =functools.partial(SubsetDictionary,  stroke_type),
 			)
 
 def get_context_from_system(system: Any)->Context:
