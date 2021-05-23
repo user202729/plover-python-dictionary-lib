@@ -108,9 +108,6 @@ class Dictionary:
 		"""
 		Map a function over the dictionary values.
 		"""
-		argspec=inspect.getfullargspec(function)
-		assert not argspec.varargs
-
 		return MappedDictionary(self.stroke_type, self, function)
 
 	def filter(self, condition: Callable[[Strokes, Any], Any])->"Dictionary":
@@ -223,8 +220,12 @@ def apply_function(function: Callable, strokes: Strokes, result: Any)->Any:
 	f(**kwargs): Same as above. kwargs["strokes"] will be available.
 	
 	"""
-	argspec=inspect.getfullargspec(function)
-	include_strokes=argspec.varkw is not None or "strokes" in argspec.args
+	include_strokes: bool=False
+	try:
+		argspec=inspect.getfullargspec(function)
+		include_strokes=argspec.varkw is not None or "strokes" in argspec.args
+	except TypeError:  # for built-in functions like str
+		pass
 
 	assert result is not None
 	if isinstance(result, CompoundResult):

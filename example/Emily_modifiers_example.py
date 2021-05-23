@@ -124,8 +124,8 @@ dictionary = (
 			(
 				# if TP is being held as well, then user is inputting a Fx key - like alt+F4
 				# add the 'F' if F number
-				s({"TP": "F"}) * count.filter(lambda x: 1 <= x <= 12).map(lambda x: str(x)) |
-				count.filter(lambda x: x <= 9).map(lambda x: str(x))
+				s({"TP": "F"}) * count.filter(lambda x: 1 <= x <= 12).map(str) |
+				count.filter(lambda x: x <= 9).map(str)
 				)
 			|
 
