@@ -153,34 +153,76 @@ class CompoundResult(NamedTuple):
 	data: Dict[str, Any]
 
 
-class NamedDictionary(Dictionary):
+class RawMappedDictionary(Dictionary):
 	"""
-	Represent a dictionary with an assigned name, for mapping.
+	Represent a dictionary with a function mapped over the raw output of a given dictionary.
+	If the given function returns None then there's no output.
 	"""
-	# note that keys after used once in map cannot be used in upper map layers.
 
-	def __init__(self, stroke_type: type, wrapped: Dictionary, name: str)->None:
+	def __init__(self, stroke_type: type, wrapped: Dictionary, function: Callable[[Strokes, Any], Any])->None:
 		super().__init__(stroke_type)
-		assert not isinstance(wrapped, NamedDictionary)
 		self.wrapped=wrapped
-		self.name=name
 		self.longest_key=wrapped.longest_key
 		self.outline_length=wrapped.outline_length
 		self.outline_mask=wrapped.outline_mask
-
-	def name_result(self, result: Any)->CompoundResult:
-		assert not isinstance(result, CompoundResult)
-		return CompoundResult({self.name: result})
+		self.raw_mapped_function=function
 
 	def lookup(self, strokes: Strokes)->Any:
 		result=self.wrapped.lookup(strokes)
 		if result is None: return None
-		return self.name_result(result)
+		return self.raw_mapped_function(strokes, result)
 
 	def items(self)->Iterable[Tuple[Strokes, Any]]:
 		for strokes, value in self.wrapped.items():
-			yield strokes, self.name_result(value)
+			assert value is not None
+			transformed_value=self.raw_mapped_function(strokes, value)
+			if transformed_value is not None:
+				yield strokes, transformed_value
 
+
+class NamedDictionary(RawMappedDictionary):
+	"""
+	Represent a dictionary with an assigned name, for mapping.
+	"""
+	# note that keys after used once in map cannot be used in upper map layers.
+	# unlike e.g. nested regex group
+	# therefore it doesn't make sense to name a dictionary twice in a row
+
+	def __init__(self, stroke_type: type, wrapped: Dictionary, name: str)->None:
+		assert not isinstance(wrapped, NamedDictionary)
+		self.name: str=name
+		super().__init__(stroke_type, wrapped, self.name_result)
+
+	def name_result(self, _strokes: Strokes, result: Any)->CompoundResult:
+		assert not isinstance(result, CompoundResult)
+		return CompoundResult({self.name: result})
+
+
+class MappedDictionary(RawMappedDictionary):
+	def __init__(self, stroke_type: type, wrapped: Dictionary, function: Callable[..., Any])->None:
+		super().__init__(stroke_type, wrapped, self.apply_function)
+		self.mapped_function=function
+
+	def apply_function(self, strokes: Strokes, result: Any)->Any:
+
+		#include_strokes=argspec.varkw is not None or "strokes" in argspec.args:
+		#include_strokes_rtfcre=argspec.varkw is not None or "strokes_rtfcre" in argspec.args:
+		#arguments={}
+		#if include_strokes: arguments["strokes"]=strokes
+		#if include_strokes_rtfcre: arguments["strokes_rtfcre"]=strokes_rtfcre
+
+		assert result is not None
+		if isinstance(result, CompoundResult):
+			return self.mapped_function(**result.data)
+		else:
+			return self.mapped_function(result)
+
+
+class FilteredDictionary(RawMappedDictionary):
+	def __init__(self, stroke_type: type, wrapped: Dictionary, condition: Callable[..., Any])->None:
+		super().__init__(stroke_type, wrapped,
+				lambda strokes, result: result if condition(result) else None
+				)
 
 
 class SingleDictionary(Dictionary):
@@ -281,37 +323,6 @@ class ProductDictionary(Dictionary):
 
 
 
-class MappedDictionary(Dictionary):
-	def __init__(self, stroke_type: type, wrapped: Dictionary, function: Callable[..., Any])->None:
-		super().__init__(stroke_type)
-		self.function=function
-		self.wrapped=wrapped
-		self.longest_key=wrapped.longest_key
-		self.outline_length=wrapped.outline_length
-		self.outline_mask=wrapped.outline_mask
-
-	def apply_function(self, strokes: Strokes, result: Any)->Any:
-
-		#include_strokes=argspec.varkw is not None or "strokes" in argspec.args:
-		#include_strokes_rtfcre=argspec.varkw is not None or "strokes_rtfcre" in argspec.args:
-		#arguments={}
-		#if include_strokes: arguments["strokes"]=strokes
-		#if include_strokes_rtfcre: arguments["strokes_rtfcre"]=strokes_rtfcre
-
-		if isinstance(result, CompoundResult):
-			return self.function(**result.data)
-		else:
-			return self.function(result)
-
-	def lookup(self, strokes: Strokes)->Any:
-		result=self.wrapped.lookup(strokes)
-		if result is None:
-			return None
-		return self.apply_function(strokes, result)
-
-	def items(self)->Iterable[Tuple[Strokes, Any]]:
-		for strokes, value in self.wrapped.items():
-			yield strokes, self.apply_function(strokes, value)
 
 
 
