@@ -11,7 +11,7 @@ pip install plover-python-dictionary-lib
 ```
 
 
-Example & usage: See [`example_python_dictionary.py`](https://github.com/user202729/plover-python-dictionary-lib/blob/main/example_python_dictionary.py) (on GitHub).
+Example & usage: See [`example/` folder](https://github.com/user202729/plover-python-dictionary-lib/tree/main/example) (on GitHub).
 
 To generate JSON (the Python dictionary must be written with this plugin),
 call `.print_items()` on the main `Dictionary` object. For example if this code
