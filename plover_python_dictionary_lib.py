@@ -79,12 +79,21 @@ class Dictionary:
 			assert isinstance(value, str)
 			yield "/".join(str(stroke) for stroke in key), value
 
+	def items_str_dict(self)->Dict[str, str]:
+		"""
+		Get the dictionary as a dict from str (RTF/CRE) to str.
+		"""
+		result_items=list(self.items_str())
+		result=dict(result_items)
+		assert len(result_items)==len(result)
+		return result
+
 	def print_items(self)->None:
 		"""
 		Print all items in the dictionary in JSON format.
 		"""
 		import json
-		json.dump(dict(self.items_str()), sys.stdout, ensure_ascii=False, indent=0)
+		json.dump(self.items_str_dict(), sys.stdout, ensure_ascii=False, indent=0)
 
 	def __or__(self, other: "Dictionary")->"Dictionary":
 		"""
