@@ -446,6 +446,8 @@ def translation(stroke_type: type, translation: str)->Dictionary:
 
 def get_context(stroke_type: type)->Context:
 	return Context(
+			Stroke            =stroke_type,
+			stroke_type       =stroke_type,
 			SingleDictionary  =functools.partial(SingleDictionary,  stroke_type),
 			s                 =functools.partial(SingleDictionary,  stroke_type),
 
