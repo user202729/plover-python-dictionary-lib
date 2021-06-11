@@ -31,9 +31,10 @@ InputStrokesType=Union[InputStrokeType, Iterable[InputStrokeType], Iterable[str]
 
 Strokes=Tuple[BaseStroke, ...]
 
-def subsets(stroke_type: type, stroke: BaseStroke)->Iterable[BaseStroke]:
-	for keys in itertools.product([[], [key]] for key in stroke.keys()):
-		yield stroke_type(itertools.chain(keys))
+def subsets(stroke: BaseStroke)->Iterable[BaseStroke]:
+	stroke_type=type(stroke)
+	for keys in itertools.product(*(((), (key,)) for key in stroke.keys())):
+		yield stroke_type(itertools.chain.from_iterable(keys))
 
 def outline_union(a: Strokes, b: Strokes)->Strokes:
 	return tuple(map(operator.or_, a, b))
@@ -367,7 +368,7 @@ class ProductDictionary(Dictionary):
 
 class SubsetDictionary(Dictionary):
 	"""
-	A dictionary formed as all the subsets of a particular set of keys.
+	A dictionary formed as all the subsets of a particular set of keys (including the empty stroke).
 	The corresponding value is a plover_stroke.BaseStroke object.
 	"""
 	def __init__(self, stroke_type: type, keys: InputStrokeType)->None:
@@ -378,8 +379,8 @@ class SubsetDictionary(Dictionary):
 
 	def items(self)->Iterable[Tuple[Strokes, Any]]:
 		assert self.outline_mask is not None
-		for stroke in subsets(self.stroke_type, self.outline_mask[0]):
-			yield stroke, stroke
+		for stroke in subsets(self.outline_mask[0]):
+			yield (stroke,), stroke
 
 	def lookup(self, strokes: Strokes)->Any:
 		assert self.outline_mask is not None
