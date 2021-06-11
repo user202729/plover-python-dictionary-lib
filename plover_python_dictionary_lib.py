@@ -1,4 +1,4 @@
-from typing import Dict, TypeVar, Union, NamedTuple, Optional, Any, Callable, List, Iterable, Tuple, Mapping
+from typing import Dict, TypeVar, Union, NamedTuple, Optional, Any, Callable, List, Iterable, Tuple, Mapping, Sequence
 import functools
 import sys
 import operator
@@ -53,19 +53,32 @@ class Dictionary:
 		Lookup a stroke in the dictionary.
 		Must not raise a KeyError.
 		Return None if there's nothing found.
-
-		Arguments:
-			strokes: a RTF/CRE stroke string.
 		"""
 		raise NotImplementedError
 
 	def lookup_str(self, strokes: str)->LookupResult:
-		result=self.lookup(tuple(map(self.stroke_type, strokes.split("/"))))
-		assert result is None or isinstance(result, str)
-		return result
+		"""
+		Lookup a stroke in the dictionary.
+		Raises `KeyError` when the stroke is invalid, or return `None` if there's nothing found.
 
-	def lookup_tuple(self, strokes: Tuple[str])->LookupResult:
-		result=self.lookup(tuple(map(self.stroke_type, strokes)))
+		Arguments:
+			strokes: a RTF/CRE outline string. Example: `"S/KW"`
+		"""
+		return self.lookup_tuple(strokes.split("/"))
+
+	def lookup_tuple(self, strokes: Sequence[str])->LookupResult:
+		"""
+		Lookup a stroke in the dictionary.
+		Raises `KeyError` when the stroke is invalid, or return `None` if there's nothing found.
+
+		Arguments:
+			strokes: a tuple of RTF/CRE stroke strings. Example: `("S", "KW")`
+		"""
+		try:
+			strokes_=tuple(map(self.stroke_type, strokes))
+		except ValueError:
+			raise KeyError(strokes)
+		result=self.lookup(strokes_)
 		assert result is None or isinstance(result, str)
 		return result
 	
