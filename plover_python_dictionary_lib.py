@@ -5,7 +5,7 @@ import operator
 import itertools
 import inspect
 from types import SimpleNamespace
-from plover_stroke import BaseStroke
+from plover_stroke import BaseStroke  # type: ignore
 
 #from functools import lru_cache
 # note (if used) weakref? id? ==?
