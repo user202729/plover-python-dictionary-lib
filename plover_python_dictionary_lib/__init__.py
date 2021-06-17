@@ -361,12 +361,19 @@ class ProductDictionary(Dictionary):
 		else:
 			return strokes_a+strokes_b
 
-	def merge_value(self, value_a: Any, value_b: Any)->Union[str, CompoundResult]:
+	def merge_value(self, value_a: Any, value_b: Any)->Any:
+		# return CompoundResult if either argument is CompoundResult (lookup result of a named dictionary)
+		# might also return None (nothing)
 		if isinstance(value_a, CompoundResult) or isinstance(value_b, CompoundResult):
 			result=CompoundResult({})
 			if isinstance(value_a, CompoundResult): result.data.update(value_a.data)
 			if isinstance(value_b, CompoundResult): result.data.update(value_b.data)
+			# the non-CompoundResult part is silently dropped
 		else:
+			if callable(value_a) and not callable(value_b):
+				return value_a(value_b)
+			if callable(value_b) and not callable(value_a):
+				return value_b(value_a)
 			try:
 				return value_a+value_b
 			except TypeError:
@@ -376,7 +383,9 @@ class ProductDictionary(Dictionary):
 	def items(self)->Iterable[Tuple[Strokes, Any]]:
 		for strokes_a, value_a in self.a.items():
 			for strokes_b, value_b in self.b.items():
-				yield self.merge_stroke(strokes_a, strokes_b), self.merge_value(value_a, value_b)
+				value=self.merge_value(value_a, value_b)
+				if value is not None:
+					yield self.merge_stroke(strokes_a, strokes_b), value
 
 
 class SubsetDictionary(Dictionary):
