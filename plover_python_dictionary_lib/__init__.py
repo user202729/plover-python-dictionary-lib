@@ -79,7 +79,7 @@ class Dictionary:
 		except ValueError:
 			raise KeyError(strokes)
 		result=self.lookup(strokes_)
-		assert result is None or isinstance(result, str)
+		assert result is None or isinstance(result, str), result
 		return result
 	
 	def items(self)->Iterable[Tuple[Strokes, Any]]:
@@ -90,7 +90,7 @@ class Dictionary:
 
 	def items_str(self)->Iterable[Tuple[str, str]]:
 		for key, value in self.items():
-			assert isinstance(value, str)
+			assert isinstance(value, str), value
 			yield "/".join(str(stroke) for stroke in key), value
 
 	def items_str_dict(self)->Dict[str, str]:
@@ -99,7 +99,7 @@ class Dictionary:
 		"""
 		result_items=list(self.items_str())
 		result=dict(result_items)
-		assert len(result_items)==len(result)
+		assert len(result_items)==len(result), "Duplicate keys"
 		return result
 
 	def print_items(self)->None:
@@ -157,7 +157,7 @@ class Dictionary:
 
 def to_stroke(stroke_type: type, stroke: InputStrokeType)->BaseStroke:
 	# with the assertion
-	assert isinstance(stroke, str) or isinstance(stroke, stroke_type)
+	assert isinstance(stroke, str) or isinstance(stroke, stroke_type), stroke
 	return stroke_type(stroke)
 
 
@@ -169,7 +169,7 @@ def to_strokes(stroke_type: type, strokes: InputStrokesType)->Strokes:
 	elif isinstance(strokes, Iterable): # must handle str case before this one
 		return tuple(to_stroke(stroke_type, stroke) for stroke in strokes)
 	else:
-		assert False
+		assert False, strokes
 
 
 class CompoundResult(NamedTuple):
@@ -215,7 +215,7 @@ class NamedDictionary(RawMappedDictionary):
 	# therefore it doesn't make sense to name a dictionary twice in a row
 
 	def __init__(self, stroke_type: type, wrapped: Dictionary, name: str)->None:
-		assert not isinstance(wrapped, NamedDictionary)
+		assert not isinstance(wrapped, NamedDictionary), f"Cannot name already-named result -- old names: {wrapped.name}, new name: {self.name}"
 		self.name: str=name
 		super().__init__(stroke_type, wrapped, self.name_result)
 
