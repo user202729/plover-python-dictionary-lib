@@ -113,6 +113,8 @@ class Dictionary:
 		"""
 		Compute the union of two dictionaries.
 		"""
+		if self.longest_key==0: return other
+		if other.longest_key==0: return self
 		return AlternativeDictionary(self.stroke_type, [self, other])
 
 	def __mul__(self, other: "Dictionary")->"Dictionary":
@@ -292,7 +294,11 @@ class SingleDictionary(Dictionary):
 		else:
 			assert False
 
-		assert self.data
+		if not self.data:
+			self.outline_length=0
+			self.longest_key=0
+			return
+
 		self.outline_length=len(next(iter(self.data.keys())))
 		self.longest_key=max(len(strokes) for strokes in self.data.keys())
 		if any(len(strokes)!=self.outline_length for strokes in self.data.keys()):
