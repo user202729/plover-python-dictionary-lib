@@ -494,5 +494,7 @@ def get_context(stroke_type: type)->Context:
 
 def get_context_from_system(system: Any)->Context:
 	class Stroke_(BaseStroke): pass
-	Stroke_.setup(system.KEYS, system.IMPLICIT_HYPHEN_KEYS, system.NUMBER_KEY, system.NUMBERS)
+	Stroke_.setup(system.KEYS,
+			{*system.IMPLICIT_HYPHEN_KEYS} & {*system.KEYS},
+			system.NUMBER_KEY, system.NUMBERS)
 	return get_context(Stroke_)
