@@ -1,7 +1,7 @@
 #!/bin/python
 
 # ======== Imports.
-from plover.system import english_stenotype as e
+from plover.system import english_stenotype as e  # type: ignore
 # Alternatively
 #    from plover import system as e
 # can be used too, but then it will only work in Plover and only if the correct system is set.

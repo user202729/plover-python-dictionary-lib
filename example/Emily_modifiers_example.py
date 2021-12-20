@@ -4,7 +4,7 @@
 
 from typing import List
 
-from plover.system import english_stenotype as e
+from plover.system import english_stenotype as e  # type: ignore
 from plover_python_dictionary_lib import get_context_from_system
 
 context=get_context_from_system(e)

@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Dict, TypeVar, Union, NamedTuple, Optional, Any, Callable, List, Iterable, Tuple, Mapping, Sequence
 import functools
 import sys
@@ -12,7 +13,8 @@ from plover_stroke import BaseStroke  # type: ignore
 
 #from plover.system import english_stenotype as system
 
-Context=SimpleNamespace
+
+
 
 def concatenate_merge_function(*args, **kwargs)->str:
 	return "".join(*args, *kwargs)
@@ -140,7 +142,10 @@ class Dictionary:
 		"""
 		return MappedDictionary(self.stroke_type, self, function)
 
-	def filter(self, condition: Callable[[Strokes, Any], Any])->"Dictionary":
+	def filter(self, condition: Callable[..., Any])->"Dictionary":
+		"""
+		See apply_function for the possible signature of condition.
+		"""
 		return FilteredDictionary(self.stroke_type, self, condition)
 
 	def named(self, name: str)->"NamedDictionary":
@@ -489,6 +494,36 @@ def translation(stroke_type: type, translation: str)->Dictionary:
 	The current implementation is not very efficient.
 	"""
 	return SingleDictionary(stroke_type, {"": translation})
+
+
+
+# define type alias for mypy type checking below
+SingleDictionary_=SingleDictionary
+FilteredDictionary_=FilteredDictionary
+SubsetDictionary_=SubsetDictionary
+
+
+@dataclass
+class Context:
+	# first argument is self. Mypy currently doesn't type-check correctly
+	Stroke            : Callable[[Any,    InputStrokeType], BaseStroke]
+	stroke_type       : Callable[[Any,    InputStrokeType], BaseStroke]
+	SingleDictionary  : Callable[[Any,    InputStrokeType], SingleDictionary_]
+	s                 : Callable[[Any,    InputStrokeType], SingleDictionary_]
+
+	stroke            : Callable[[Any,    str], Dictionary]  # consist of that single stroke. See example file for details
+
+	translation       : Callable[[Any,    Any], Dictionary]  # consist of a "null stroke" that translates to the translation. Input type is most frequently str
+
+	filtered          : Callable[[Any,    Any], FilteredDictionary_]
+	FilteredDictionary: Callable[[Any,    Any], FilteredDictionary_]
+
+	subsets           : Callable[[Any,    Any], SubsetDictionary_]
+	subsetd           : Callable[[Any,    Any], SubsetDictionary_]
+	SubsetDictionary  : Callable[[Any,    Any], SubsetDictionary_]
+
+
+
 
 def get_context(stroke_type: type)->Context:
 	return Context(
