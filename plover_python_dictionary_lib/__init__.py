@@ -315,6 +315,18 @@ class SingleDictionary(Dictionary):
 	def items(self)->Iterable[Tuple[Strokes, Any]]:
 		return self.data.items()
 
+	def __iter__(self)->Iterable[Strokes]:
+		return self.data.__iter__()
+
+	def keys(self)->Iterable[Strokes]:
+		return self.data.keys()
+
+	def values(self)->Iterable[Any]:
+		return self.data.values()
+
+	def __contains__(self, strokes: Strokes)->bool:
+		return self.data.__contains__(strokes)
+
 
 class ProductDictionary(Dictionary):
 	def __init__(self, stroke_type: type, a: Dictionary, b: Dictionary, merge: bool)->None:
