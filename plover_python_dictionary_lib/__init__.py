@@ -132,6 +132,11 @@ class Dictionary:
 	def map(self, function: Callable[..., Any])->"Dictionary":
 		"""
 		Map a function over the dictionary values.
+
+		The function can return None or raise KeyError to signify "no entry".
+
+		Note that any empty value is interpreted by Plover as "no entry". The no-op translation
+		in Plover is {#}.
 		"""
 		return MappedDictionary(self.stroke_type, self, function)
 
