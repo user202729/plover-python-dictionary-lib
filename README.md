@@ -17,7 +17,10 @@ This is required to use/run the Python dictionaries that use this library.
 ### Example & usage
 
 * The most common use case would be a Cartesian product of various dictionaries.
-* Read the documentation in the source code, and the [`example/` folder](https://github.com/user202729/plover-python-dictionary-lib/tree/main/example) (on GitHub).
+* You can read
+	* [`00_two_letter_fingerspelling_example` example dictionary file](https://github.com/user202729/plover-python-dictionary-lib/blob/main/example/00_two_letter_fingerspelling_example.py) (GitHub link) for an example (this one is the most well-documented example file, with common patterns and explanation),
+	* the rest of the files in the [`example/` folder](https://github.com/user202729/plover-python-dictionary-lib/tree/main/example),
+	* and the documentation (as Python docstrings) in the source code,
 * Useful resources: [Frequently used dictionary components](https://github.com/user202729/plover-python-dictionary-lib/wiki/Frequently-used-dictionary-components) *(feel free to edit the wiki)*
 
 ### Generate JSON
