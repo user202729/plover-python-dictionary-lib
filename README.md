@@ -14,8 +14,8 @@ pip install plover-python-dictionary-lib
 
 This is required to use/run the Python dictionaries that use this library.
 
-### Example & usage
-#### Imports and setup
+### Example & Usage
+#### Imports And Setup
 
 * The example code assumes you have run the code below
 ```python
@@ -27,8 +27,8 @@ stroke=context.stroke
 translation=context.translation
 ```
 
-#### Dictionary operations
-* The /| operator
+#### Dictionary Operations
+* The | operator
 	* Compute the union of two dictionaries together (basically updating one dictionary with another as like a normal python dictionary)
 ```python
 you = s({"KPWR": "you"})
@@ -37,7 +37,7 @@ dict1 = you | they
 dict1.print_items()
 # {"KPWR": "you", "TWH": "they"}
 ```
-* The /* operator
+* The * operator
 	* Compute the Cartesian product of two dictionaries such that:
 		* Adjacent strokes are merged as according to steno order
 		* Adjacent translations are merged using the + operator
@@ -54,7 +54,7 @@ dict = dict1 * dict2
 dict.print_items()
 # {"KPWR-R": "you are", "TWH-R": "they are"}
 ```
-#### Named dictionaries
+#### Named Dictionaries
 - Sometimes you want to have custom behavior for your translations
 - For example applying mods on some characters
 ```python
@@ -66,7 +66,9 @@ mods = s({"-R": ["shift"], "": []}).named("mods")
 characters = s({"A": "a"}).named("characters")
 dict = (mods * characters).map(applyMods)
 dict.print_items()
+# {"AR": "shift(a)", "A": "a"}
 ```
+#### Extra Notes
 * The most common use case would be a Cartesian product of various dictionaries.
 * Read the documentation in the source code, and the [`example/` folder](https://github.com/user202729/plover-python-dictionary-lib/tree/main/example) (on GitHub).
 * Useful resources: [Frequently used dictionary components](https://github.com/user202729/plover-python-dictionary-lib/wiki/Frequently-used-dictionary-components) *(feel free to edit the wiki)*
