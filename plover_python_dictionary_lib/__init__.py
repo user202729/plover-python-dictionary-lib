@@ -175,7 +175,8 @@ def to_stroke(stroke_type: type, stroke: InputStrokeType)->BaseStroke:
 
 def to_strokes(stroke_type: type, strokes: InputStrokesType)->Strokes:
 	if isinstance(strokes, str):
-		return (stroke_type(strokes),)
+		# plover.steno.STROKE_DELIMITER
+		return tuple(stroke_type(stroke) for stroke in strokes.split("/"))
 	elif isinstance(strokes, BaseStroke):
 		return (strokes,)
 	elif isinstance(strokes, Iterable): # must handle str case before this one
