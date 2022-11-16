@@ -506,22 +506,23 @@ SubsetDictionary_=SubsetDictionary
 
 @dataclass
 class Context:
-	# first argument is self. Mypy currently doesn't type-check correctly
-	Stroke            : Callable[[Any,    InputStrokeType], BaseStroke]
-	stroke_type       : Callable[[Any,    InputStrokeType], BaseStroke]
-	SingleDictionary  : Callable[[Any,    InputStrokeType], SingleDictionary_]
-	s                 : Callable[[Any,    InputStrokeType], SingleDictionary_]
+	# In older mypy versions this would not type check correctly.
+	# https://github.com/python/mypy/issues/708
+	Stroke            : Callable[[InputStrokeType], BaseStroke]
+	stroke_type       : Callable[[InputStrokeType], BaseStroke]
+	SingleDictionary  : Callable[[InputStrokeType], SingleDictionary_]
+	s                 : Callable[[InputStrokeType], SingleDictionary_]
 
-	stroke            : Callable[[Any,    str], Dictionary]  # consist of that single stroke. See example file for details
+	stroke            : Callable[[str], Dictionary]  # consist of that single stroke. See example file for details
 
-	translation       : Callable[[Any,    Any], Dictionary]  # consist of a "null stroke" that translates to the translation. Input type is most frequently str
+	translation       : Callable[[Any], Dictionary]  # consist of a "null stroke" that translates to the translation. Input type is most frequently str
 
-	filtered          : Callable[[Any,    Any], FilteredDictionary_]
-	FilteredDictionary: Callable[[Any,    Any], FilteredDictionary_]
+	filtered          : Callable[[Any], FilteredDictionary_]
+	FilteredDictionary: Callable[[Any], FilteredDictionary_]
 
-	subsets           : Callable[[Any,    Any], SubsetDictionary_]
-	subsetd           : Callable[[Any,    Any], SubsetDictionary_]
-	SubsetDictionary  : Callable[[Any,    Any], SubsetDictionary_]
+	subsets           : Callable[[Any], SubsetDictionary_]
+	subsetd           : Callable[[Any], SubsetDictionary_]
+	SubsetDictionary  : Callable[[Any], SubsetDictionary_]
 
 
 
