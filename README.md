@@ -82,8 +82,6 @@ The Python dictionary must be written with this plugin.
 
 Call `.print_items()` on the main `Dictionary` object. (see also the example dictionaries above)
 
-**Note**: because of [an incompatibility between Plover and the `plover_stroke` library](https://github.com/benoit-pierre/plover_stroke/issues/1),
-sometimes the JSON dictionary may not work in Plover.
 
 For example: if this code
 is included at the end of the Python dictionary file named `dictionary.py`
@@ -95,3 +93,14 @@ if __name__=="__main__":
 
 (assuming that the main dictionary object is named `dictionary`) then running `python dictionary.py`
 will print the dictionary as JSON to the standard output.
+
+**Note**: If you get the error:
+```
+ModuleNotFoundError: No module named 'plover'
+```
+it means Plover was installed in a different Python *environment* from the environment that you ran the script in.
+
+It depends on the operating-system and specific installation method how to run it in the correct environment. See https://github.com/user202729/plover-python-dictionary-lib/issues/4 for an example.
+
+**Note** (fixed bug, affects old version only): because of [an incompatibility between Plover and the `plover_stroke` library](https://github.com/benoit-pierre/plover_stroke/issues/1),
+sometimes the JSON dictionary may not work in Plover.
