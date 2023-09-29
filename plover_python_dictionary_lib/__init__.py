@@ -487,7 +487,7 @@ def stroke(stroke_type: type, strokes: str)->Dictionary:
 	"""
 	return SingleDictionary(stroke_type, {strokes: ""})
 
-def translation(stroke_type: type, translation: str)->Dictionary:
+def translation(stroke_type: type, translation: Any)->Dictionary:
 	"""
 	Return a dictionary that has <translation> as the translation and nothing as the stroke.
 	Useful as part of a dictionary.
@@ -508,10 +508,13 @@ SubsetDictionary_=SubsetDictionary
 class Context:
 	# In older mypy versions this would not type check correctly.
 	# https://github.com/python/mypy/issues/708
+
+	# Stroke class provided by `plover_stroke` library.
 	Stroke            : Callable[[InputStrokeType], BaseStroke]
 	stroke_type       : Callable[[InputStrokeType], BaseStroke]
-	SingleDictionary  : Callable[[InputStrokeType], SingleDictionary_]
-	s                 : Callable[[InputStrokeType], SingleDictionary_]
+
+	SingleDictionary  : Callable[[Union[Iterable[InputStrokesType], Dict[InputStrokesType, Any]]], SingleDictionary_]
+	s                 : Callable[[Union[Iterable[InputStrokesType], Dict[InputStrokesType, Any]]], SingleDictionary_]
 
 	stroke            : Callable[[str], Dictionary]  # consist of that single stroke. See example file for details
 
