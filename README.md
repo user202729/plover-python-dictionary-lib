@@ -2,6 +2,12 @@
 Library for writing Python dictionary for Plover,
 and generating JSON dictionary file from Python dictionary.
 
+A Python dictionary is a Plover dictionary that is written in Python.
+Refer to [documentation of the `plover-python-dictionary` package](https://pypi.org/project/plover-python-dictionary/)
+to see what is the advantage of a Python dictionary.
+
+This library provides some convenient helper tools to write a dictionary.
+
 ### Installation
 
 This package is available on 
@@ -15,20 +21,43 @@ pip install plover-python-dictionary-lib
 This is required to use/run the Python dictionaries that use this library.
 
 ### Example & Usage
-#### Imports And Setup
 
-* The example code assumes you have run the code below
+#### Getting started
+
+This is a minimal example of a Python dictionary. You can save it as `helloworld.py` and load it into Plover, provided
+`plover-python-dictionary` package is installed.
+
 ```python
+#!/bin/python3
 from plover.system import english_stenotype as e
 from plover_python_dictionary_lib import get_context_from_system
 context=get_context_from_system(e)
 s=context.SingleDictionary
 stroke=context.stroke
 translation=context.translation
+
+dictionary=s({
+	"S": "hello world"
+	})
+
+lookup = lambda strokes: dictionary.lookup_tuple(strokes)
+LONGEST_KEY = dictionary.longest_key
+
+if __name__=="__main__":
+	dictionary.print_items()
 ```
 
+When loaded into Plover, it will define a dictionary with a single translation, as suggested by the `dictionary` variable.
+
+It can also be run as a standalone Python script to print out the JSON dictionary it would corresponds to.
+Refer to ["Generate JSON" section](#generate-json) for details.
+
 #### Dictionary Operations
-* The | operator
+
+The power of the package comes from the variety of built-in functions that allows manipulating the components easily
+to build up a whole dictionary.
+
+* The `|` operator
 	* Compute the union of two dictionaries together (basically updating one dictionary with another as like a normal python dictionary)
 ```python
 you = s({"KPWR": "you"})
@@ -37,10 +66,11 @@ dict1 = you | they
 dict1.print_items()
 # {"KPWR": "you", "TWH": "they"}
 ```
-* The * operator
+
+* The `*` operator
 	* Compute the Cartesian product of two dictionaries such that:
 		* Adjacent strokes are merged as according to steno order
-		* Adjacent translations are merged using the + operator
+		* Adjacent translations are merged using the `+` operator
 	* Example:
 ```python
 dict1 = s({
@@ -54,7 +84,8 @@ dict = dict1 * dict2
 dict.print_items()
 # {"KPWR-R": "you are", "TWH-R": "they are"}
 ```
-#### Named Dictionaries
+
+#### Named argument to `.map()` method
 - Sometimes you want to have custom behavior for your translations
 - For example applying mods on some characters
 ```python
@@ -68,8 +99,9 @@ dict = (mods * characters).map(applyMods)
 dict.print_items()
 # {"AR": "shift(a)", "A": "a"}
 ```
-#### Extra Notes
-* The most common use case would be a Cartesian product of various dictionaries.
+
+#### Extra
+
 * You can read
 	* [`00_two_letter_fingerspelling_example` example dictionary file](https://github.com/user202729/plover-python-dictionary-lib/blob/main/example/00_two_letter_fingerspelling_example.py) (GitHub link) for an example (this one is the most well-documented example file, with common patterns and explanation),
 	* the rest of the files in the [`example/` folder](https://github.com/user202729/plover-python-dictionary-lib/tree/main/example),
