@@ -57,6 +57,11 @@ Refer to ["Generate JSON" section](#generate-json) for details.
 The power of the package comes from the variety of built-in functions that allows manipulating the components easily
 to build up a whole dictionary.
 
+When you have built up the desired dictionary, simply assign it to the `dictionary` variable, and set `lookup` and `LONGEST_KEY` correspondingly.
+
+You can experiment with the operators simply by running the necessary imports in a Python shell;
+alternatively, just run the Python file standalone to print out the content of the dictionary.
+
 * The `|` operator
 	* Compute the union of two dictionaries together (basically updating one dictionary with another as like a normal python dictionary)
 ```python
@@ -85,9 +90,23 @@ dict.print_items()
 # {"KPWR-R": "you are", "TWH-R": "they are"}
 ```
 
-#### Named argument to `.map()` method
-- Sometimes you want to have custom behavior for your translations
-- For example applying mods on some characters
+#### `map()` method
+
+Allows you to modify the content of an existing dictionary.
+```python
+>>> dict1 = s({"S": "is", "K": "can"})
+>>> dict1.map(lambda x: x*2)
+MappedDictionary({(S,): 'isis', (K,): 'cancan'})
+```
+
+You can also map over the keys provided the arguments are specially named as `strokes` and `result`:
+```python
+>>> dict1.map(lambda strokes, result: f"{result} ({strokes})")
+MappedDictionary({(S,): 'is ((S,))', (K,): 'can ((K,))'})
+```
+
+You can also customize the argument names:
+
 ```python
 def applyMods(mods, characters):
 	for mod in mods:
@@ -99,6 +118,8 @@ dict = (mods * characters).map(applyMods)
 dict.print_items()
 # {"AR": "shift(a)", "A": "a"}
 ```
+In this case, `named("characters")` marks that the translation of the `characters` dictionary is
+to be passed to the argument named `characters` in `applyMods`.
 
 #### Extra
 

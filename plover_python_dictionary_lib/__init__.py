@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Dict, TypeVar, Union, NamedTuple, Optional, Any, Callable, List, Iterable, Tuple, Mapping, Sequence
+from abc import ABC, abstractmethod
 import functools
 import sys
 import operator
@@ -46,10 +47,11 @@ def outline_union_strip_optional(a: Optional[Strokes], b: Optional[Strokes])->St
 	assert b
 	return outline_union(a, b)
 
-class Dictionary:
+class Dictionary(ABC):
 	def __init__(self, stroke_type: type)->None:
 		self.stroke_type=stroke_type
 
+	@abstractmethod
 	def lookup(self, strokes: Strokes)->Any:
 		"""
 		Lookup a stroke in the dictionary.
@@ -57,6 +59,9 @@ class Dictionary:
 		Return None if there's nothing found.
 		"""
 		raise NotImplementedError
+
+	def __getitem__(self, strokes: Strokes)->Any:
+		return self.lookup(strokes)
 
 	def lookup_str(self, strokes: str)->LookupResult:
 		"""
@@ -84,11 +89,16 @@ class Dictionary:
 		assert result is None or isinstance(result, str), result
 		return result
 	
+	@abstractmethod
 	def items(self)->Iterable[Tuple[Strokes, Any]]:
 		"""
 		Return all items in the dictionary.
 		"""
 		raise NotImplementedError
+
+	def keys(self)->Iterable[Strokes]:
+		for key, value in self.items():
+			yield key
 
 	def items_str(self)->Iterable[Tuple[str, str]]:
 		for key, value in self.items():
@@ -150,6 +160,15 @@ class Dictionary:
 
 	def named(self, name: str)->"NamedDictionary":
 		return NamedDictionary(self.stroke_type, self, name)
+
+	def __str__(self)->str:
+		"""
+		Pretty-print this dictionary.
+		"""
+		return self.__class__.__name__ + "(" + str(dict(self)) + ")"
+
+	def __repr__(self)->str:
+		return str(self)
 
 	outline_length: Optional[int]
 	"""
