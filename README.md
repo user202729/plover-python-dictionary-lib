@@ -1,4 +1,7 @@
 # plover-python-dictionary-lib
+
+[![PyPI](https://img.shields.io/pypi/v/plover-python-dictionary-lib?style=flat)](https://pypi.python.org/pypi/plover-python-dictionary-lib/)
+
 Library for writing Python dictionary for Plover,
 and generating JSON dictionary file from Python dictionary.
 
