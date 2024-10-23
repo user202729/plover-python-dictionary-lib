@@ -111,7 +111,15 @@ class Dictionary(ABC):
 		"""
 		result_items=list(self.items_str())
 		result=dict(result_items)
-		assert len(result_items)==len(result), "Duplicate keys"
+		if len(result_items)!=len(result):
+			import logging
+			from collections import defaultdict
+			values_by_key=defaultdict(list)
+			for key, value in result_items:
+				values_by_key[key].append(value)
+			warning_message=', '.join([f'{key}: {values[:10]}' for key, values in values_by_key.items()
+							   if len(values)>1][:10])
+			logging.getLogger(__name__).warn(f"Duplicate items in dictionary. For example {warning_message}")
 		return result
 
 	def print_items(self)->None:
